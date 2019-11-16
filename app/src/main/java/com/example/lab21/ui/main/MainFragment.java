@@ -1,5 +1,6 @@
 package com.example.lab21.ui.main;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -16,6 +17,7 @@ import androidx.room.Room;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -112,6 +114,7 @@ public class MainFragment extends Fragment implements RecycleViewOnClickListener
                     mAdapter.setRecords(Arrays.asList(record));
                     mAdapter.notifyDataSetChanged();
                     disposibles.dispose();
+                    hideKeyboardFrom(appCntxt,rootView);
                 }, error -> {
                     System.out.println("ERROR OCCURED" + error.getMessage());
                 }));
@@ -138,6 +141,7 @@ public class MainFragment extends Fragment implements RecycleViewOnClickListener
                         mAdapter.setRecords(records.getRecords());
                         mAdapter.notifyDataSetChanged();
                         disposibles.dispose();
+                        hideKeyboardFrom(appCntxt,rootView);
                     }, error -> {
                         error.printStackTrace();
                     }));
@@ -150,7 +154,7 @@ public class MainFragment extends Fragment implements RecycleViewOnClickListener
                         if (records != null && records.size() != 0) {
                             mAdapter.setRecords(records);
                             mAdapter.notifyDataSetChanged();
-
+                            hideKeyboardFrom(appCntxt,rootView);
                         } else {
                             Toast toast = Toast.makeText(appCntxt,
                                     "Запрашиваемые данные недоступны!", Toast.LENGTH_LONG);
@@ -165,5 +169,10 @@ public class MainFragment extends Fragment implements RecycleViewOnClickListener
     @Override
     public void onClick(Record clickedRecord) {
         parent.changeFragment(clickedRecord);
+    }
+
+    public static void hideKeyboardFrom(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }
