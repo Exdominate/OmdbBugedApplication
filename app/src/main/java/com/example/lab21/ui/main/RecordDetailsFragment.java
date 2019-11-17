@@ -11,16 +11,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.arellomobile.mvp.MvpAppCompatFragment;
+import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.bumptech.glide.Glide;
+import com.example.lab21.Moxy.RecordDetailPresenter;
+import com.example.lab21.Moxy.RecordDetailView;
 import com.example.lab21.R;
 import com.example.lab21.Record;
 
 import java.util.Random;
 
-public class RecordDetailsFragment extends Fragment {
+public class RecordDetailsFragment extends MvpAppCompatFragment implements RecordDetailView {
+    @InjectPresenter
+    RecordDetailPresenter presenter;
+
     public final static String ID = String.valueOf(new Random().nextInt());
     private View rootView;
-    private TextView title, year, released, duration, genre, Rated, director, imdbRating, imdbVotes, metascore, type;
+    private TextView title, year, released, duration, genre,
+            Rated, director, imdbRating, imdbVotes, metascore, type;
     private ImageView poster;
     private Record record;
 
@@ -32,11 +40,19 @@ public class RecordDetailsFragment extends Fragment {
         this.record = record;
     }
 
+    public RecordDetailsFragment() { }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.detailed_fragment, container, false);
+        presenter.showData(record);
+        return rootView;
+    }
+
+    @Override
+    public void loadData(Record record){
         /*initialize elements*/
         poster = (ImageView) rootView.findViewById(R.id.detailedImage);
         title = (TextView) rootView.findViewById(R.id.title);
@@ -71,7 +87,6 @@ public class RecordDetailsFragment extends Fragment {
         } catch (Exception e) {
             System.out.println("Exception::Glide::" + e.getMessage());
         }
-        return rootView;
     }
 
     private String nullToEmpty(String str){

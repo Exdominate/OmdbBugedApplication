@@ -8,11 +8,9 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +19,12 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.arellomobile.mvp.MvpAppCompatFragment;
+import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.example.lab21.MainActivity;
+import com.example.lab21.Moxy.MainActivityPresenter;
+import com.example.lab21.Moxy.MainFragmentView;
+import com.example.lab21.Moxy.MainFragmentPresenter;
 import com.example.lab21.MyRecycleViewAdapter;
 import com.example.lab21.NetworkService;
 import com.example.lab21.R;
@@ -31,16 +34,18 @@ import com.example.lab21.Room.AppDb;
 import com.example.lab21.Room.DbSingleton;
 import com.example.lab21.Room.OmdbDao;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class MainFragment extends Fragment implements RecycleViewOnClickListener {
+public class MainFragment extends MvpAppCompatFragment
+        implements RecycleViewOnClickListener, MainFragmentView {
+    @InjectPresenter
+    MainFragmentPresenter presenter;
+    MainActivityPresenter parentPresenter;
+
     public final static String ID = "VeryUniqueId";
     private String API_KEY = "d862f73d";
     private RecyclerView recyclerView;
@@ -55,14 +60,11 @@ public class MainFragment extends Fragment implements RecycleViewOnClickListener
     private MainActivity parent;
 
 
-    public static MainFragment newInstance(ConnectivityManager cm,MainActivity parent) {
-        return new MainFragment(cm,parent);
+    public static MainFragment newInstance() {
+        return new MainFragment();
     }
 
-    public MainFragment(ConnectivityManager cm,MainActivity parent) {
-        this.cm = cm;
-        this.parent=parent;
-    }
+    public MainFragment() {}
 
     @Nullable
     @Override
@@ -71,8 +73,8 @@ public class MainFragment extends Fragment implements RecycleViewOnClickListener
         networkService = NetworkService.getInstance();
         rootView = inflater.inflate(R.layout.main_fragment, container, false);
         //on click listeners
-        rootView.findViewById(R.id.searchButton).setOnClickListener(this::loadInternetData);
-        rootView.findViewById(R.id.findButton).setOnClickListener(this::loadInternetRecord);
+        rootView.findViewById(R.id.searchButton).setOnClickListener(this::clickedLoadInternetData);
+        rootView.findViewById(R.id.findButton).setOnClickListener(this::clickedLoadInternetRecord);
         // 1. get recycle view
         recyclerView = rootView.findViewById(R.id.recordsRecycleView);
         // 2. use a linear layout manager
@@ -86,8 +88,24 @@ public class MainFragment extends Fragment implements RecycleViewOnClickListener
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         // 6 .подключаем бд
         moviesDb = DbSingleton.getInstance(rootView.getContext()).getAppDb();
+        // 7. устанавливаем родительского презентера в наш презентер один раз
+        if (parentPresenter!=null) this.presenter.setParentPresenter(parentPresenter);
         appCntxt = rootView.getContext();
         return rootView;
+    }
+
+    @Override
+    public void setParent(MainActivity parent){
+        //когда всё таки получили родителя
+        this.parent=parent;
+        // 8. добавляем connectivityManager
+        ConnectivityManager tcm=null;
+        if (parent!=null) tcm = parent.getConnectivityManager();
+        presenter.initConnectivityManager(tcm);
+    }
+
+    public void setParentPresenter(MainActivityPresenter _presenter){
+        parentPresenter=_presenter;
     }
 
     @Override
@@ -97,7 +115,22 @@ public class MainFragment extends Fragment implements RecycleViewOnClickListener
         // TODO: Use the ViewModel
     }
 
-    public void loadInternetRecord(View v) {
+    public void clickedLoadInternetRecord(View v){
+        presenter.giveMeParent();
+        if (parent!=null) presenter.loadInternetRecord();
+    }
+
+    public void clickedLoadInternetData(View v){
+        presenter.giveMeParent();
+        if (parent!=null) presenter.loadInternetData();
+    }
+
+    @Override
+    public void setConnectivityManager(ConnectivityManager cm) {
+        this.cm=cm;
+    }
+
+    public void loadInternetRecord() {
         String text = ((EditText) rootView.findViewById(R.id.searchText)).getText().toString();
         if (text.length() == 0) return;
         if (disposibles.isDisposed()) disposibles = new CompositeDisposable();
@@ -120,7 +153,7 @@ public class MainFragment extends Fragment implements RecycleViewOnClickListener
                 }));
     }
 
-    public void loadInternetData(View v) {
+    public void loadInternetData() {
         String text = ((EditText) rootView.findViewById(R.id.searchText)).getText().toString();
         if (text.length() == 0) return;
         if (disposibles.isDisposed()) disposibles = new CompositeDisposable();
@@ -168,7 +201,8 @@ public class MainFragment extends Fragment implements RecycleViewOnClickListener
 
     @Override
     public void onClick(Record clickedRecord) {
-        parent.changeFragment(clickedRecord);
+        presenter.giveMeParent();
+        if (parent!=null) parent.changeFragment(clickedRecord);
     }
 
     public static void hideKeyboardFrom(Context context, View view) {
