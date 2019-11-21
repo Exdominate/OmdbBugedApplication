@@ -9,17 +9,17 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 
-import com.arellomobile.mvp.MvpAppCompatFragment;
-import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.bumptech.glide.Glide;
-import com.example.lab21.Moxy.RecordDetailPresenter;
-import com.example.lab21.Moxy.RecordDetailView;
+import com.example.lab21.mvp.RecordDetailPresenter;
+import com.example.lab21.mvp.RecordDetailView;
 import com.example.lab21.R;
 import com.example.lab21.Record;
 
 import java.util.Random;
+
+import moxy.MvpAppCompatFragment;
+import moxy.presenter.InjectPresenter;
 
 public class RecordDetailsFragment extends MvpAppCompatFragment implements RecordDetailView {
     @InjectPresenter

@@ -5,12 +5,13 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.arellomobile.mvp.MvpAppCompatActivity;
-import com.arellomobile.mvp.presenter.InjectPresenter;
-import com.example.lab21.Moxy.MainActivityPresenter;
-import com.example.lab21.Moxy.MainActivityView;
+import com.example.lab21.mvp.MainActivityPresenter;
+import com.example.lab21.mvp.MainActivityView;
 import com.example.lab21.ui.main.MainFragment;
 import com.example.lab21.ui.main.RecordDetailsFragment;
+
+import moxy.MvpAppCompatActivity;
+import moxy.presenter.InjectPresenter;
 
 public class MainActivity extends MvpAppCompatActivity implements MainActivityView {
     @InjectPresenter
@@ -22,14 +23,11 @@ public class MainActivity extends MvpAppCompatActivity implements MainActivityVi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
         if (savedInstanceState == null) {
-            MainFragment fragment=MainFragment.newInstance();
-            presenter.setMainActivityInstance(this);
-            presenter.setActualActivity();
+            MainFragment fragment = MainFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container,fragment)
+                    .replace(R.id.container, fragment)
                     .addToBackStack(MainFragment.ID)
                     .commit();
-            fragment.setParentPresenter(presenter);
         }
         Log.i(TAG, "onCreate: ");
     }

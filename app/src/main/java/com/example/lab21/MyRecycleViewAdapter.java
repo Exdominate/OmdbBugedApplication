@@ -59,6 +59,7 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<MyRecycleViewAdap
         holder.titleView.setText(record.getTitle());
         holder.yearView.setText("Release year: "+record.getYear());
         holder.durationView.setText("Type: "+record.getType());
+        holder.itemView.setOnClickListener(v -> clickHandler.onClick(record));
         //for image
         RequestOptions myOptions = new RequestOptions()
                 .fitCenter();
@@ -80,7 +81,7 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<MyRecycleViewAdap
         return records.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    class ViewHolder extends RecyclerView.ViewHolder{
         final ImageView imageView;
         final TextView titleView, yearView, durationView;
 
@@ -90,12 +91,6 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<MyRecycleViewAdap
             titleView = (TextView) view.findViewById(R.id.titleView);
             yearView = (TextView) view.findViewById(R.id.yearView);
             durationView = (TextView) view.findViewById(R.id.typeView);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    clickHandler.onClick(records.get(getAdapterPosition()));
-                }
-            });
         }
     }
 }
