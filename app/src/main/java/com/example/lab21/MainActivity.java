@@ -1,40 +1,40 @@
 package com.example.lab21;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Window;
-import android.view.WindowManager;
 
+import com.example.lab21.mvp.MainActivityPresenter;
+import com.example.lab21.mvp.MainActivityView;
 import com.example.lab21.ui.main.MainFragment;
 import com.example.lab21.ui.main.RecordDetailsFragment;
 
-import java.util.List;
+import moxy.MvpAppCompatActivity;
+import moxy.presenter.InjectPresenter;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends MvpAppCompatActivity implements MainActivityView {
+    @InjectPresenter
+    MainActivityPresenter presenter;
     private final String TAG="MainActivity";
-    ConnectivityManager cm;
     
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate( Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main_activity);
-        //подключаем connectivity manager
-        cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-
         if (savedInstanceState == null) {
+            MainFragment fragment = MainFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container, MainFragment.newInstance(cm,this))
+                    .replace(R.id.container, fragment)
                     .addToBackStack(MainFragment.ID)
                     .commit();
         }
         Log.i(TAG, "onCreate: ");
+    }
+
+    @Override
+    public void getActivityInstance() {
+        presenter.setMainActivityInstance(this);
     }
 
     public void changeFragment(Record record){
@@ -42,6 +42,11 @@ public class MainActivity extends AppCompatActivity {
                 .replace(R.id.container, RecordDetailsFragment.newInstance(record))
                 .addToBackStack(RecordDetailsFragment.ID)
                 .commit();
+    }
+
+    //подключаем connectivity manager
+    public ConnectivityManager getConnectivityManager(){
+        return  (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
     }
 
     @Override
@@ -65,12 +70,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        presenter.setMainActivityInstance(null);
         Log.i(TAG, "onDestroy: ");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.i(TAG, "onPause: ");
     }
 }
